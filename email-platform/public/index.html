@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LARK Email Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .stat-card .value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-running { background: #27ae60; }
+        .status-stopped { background: #e74c3c; }
+        
+        .controls {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn.danger {
+            background: #e74c3c;
+        }
+        
+        .btn.danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn.success {
+            background: #27ae60;
+        }
+        
+        .btn.success:hover {
+            background: #229954;
+        }
+        
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .section h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+        }
+        
+        .error {
+            background: #fee;
+            color: #c0392b;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #efe;
+            color: #27ae60;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .progress-bar {
+            background: #ecf0f1;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: #3498db;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        
+        .nav-tab {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .nav-tab.active {
+            border-bottom-color: #3498db;
+            color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 LARK Email Platform</h1>
+            <p>Platform pengiriman email masal dengan multiple SMTP accounts</p>
+        </div>
+
+        <div id="loading" class="loading">
+            Memuat dashboard...
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Kontak</h3>
+                    <div class="value" id="total-contacts">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>SMTP Accounts</h3>
+                    <div class="value" id="smtp-accounts">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Email dalam Antrian</h3>
+                    <div class="value" id="emails-queued">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Email Sender</h3>
+                    <div class="value">
+                        <span id="sender-status" class="status-indicator"></span>
+                        <span id="sender-text">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <h3>Kontrol Email Sender</h3>
+                <button id="start-sender" class="btn success">▶️ Start Sender</button>
+                <button id="stop-sender" class="btn danger">⏹️ Stop Sender</button>
+                <button id="retry-failed" class="btn">🔄 Retry Failed</button>
+                <button id="refresh-data" class="btn">🔄 Refresh</button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('campaigns')">📧 Kampanye</button>
+                <button class="nav-tab" onclick="showTab('smtp')">🔧 SMTP Accounts</button>
+                <button class="nav-tab" onclick="showTab('contacts')">👥 Kontak</button>
+                <button class="nav-tab" onclick="showTab('logs')">📊 Logs</button>
+            </div>
+
+            <!-- Campaign Tab -->
+            <div id="campaigns-tab" class="tab-content active">
+                <div class="section">
+                    <h2>Kampanye Aktif</h2>
+                    <div id="active-campaigns">
+                        <div class="loading">Memuat kampanye...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SMTP Tab -->
+            <div id="smtp-tab" class="tab-content">
+                <div class="section">
+                    <h2>SMTP Accounts</h2>
+                    <div id="smtp-list">
+                        <div class="loading">Memuat SMTP accounts...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacts Tab -->
+            <div id="contacts-tab" class="tab-content">
+                <div class="section">
+                    <h2>Statistik Kontak</h2>
+                    <div id="contact-stats">
+                        <div class="loading">Memuat statistik kontak...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs-tab" class="tab-content">
+                <div class="section">
+                    <h2>Error Logs Terbaru</h2>
+                    <div id="error-logs">
+                        <div class="loading">Memuat error logs...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let dashboardData = {};
+
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const result = await response.json();
+                
+                if (result.success) {
+                    dashboardData = result.data;
+                    updateDashboard();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                } else {
+                    showError('Gagal memuat dashboard: ' + result.message);
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        // Update dashboard UI
+        function updateDashboard() {
+            const overview = dashboardData.overview;
+            
+            document.getElementById('total-contacts').textContent = overview.total_contacts;
+            document.getElementById('smtp-accounts').textContent = `${overview.active_smtp_accounts}/${overview.total_smtp_accounts}`;
+            document.getElementById('emails-queued').textContent = overview.emails_in_queue;
+            
+            const senderStatus = document.getElementById('sender-status');
+            const senderText = document.getElementById('sender-text');
+            
+            if (overview.sender_running) {
+                senderStatus.className = 'status-indicator status-running';
+                senderText.textContent = 'Running';
+            } else {
+                senderStatus.className = 'status-indicator status-stopped';
+                senderText.textContent = 'Stopped';
+            }
+            
+            loadActiveCampaigns();
+            loadSmtpAccounts();
+            loadContactStats();
+            loadErrorLogs();
+        }
+
+        // Load active campaigns
+        async function loadActiveCampaigns() {
+            try {
+                const response = await fetch('/api/dashboard/campaigns/active');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const container = document.getElementById('active-campaigns');
+                    
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<p>Tidak ada kampanye aktif</p>';
+                        return;
+                    }
+                    
+                    let html = '<table><thead><tr><th>Nama</th><th>Status</th><th>Progress</th><th>Sent/Total</th></tr></thead><tbody>';
+                    
+                    result.data.forEach(campaign => {
+                        const progress = campaign.progress || 0;
+                        html += `
+                            <tr>
+                                <td>${campaign.name}</td>
+                                <td>${campaign.status}</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${progress}%"></div>
+                                    </div>
+                                    ${progress}%
+                                </td>
+                                <td>${campaign.sent_count}/${campaign.queued_emails}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading campaigns:', error);
+            }
+        }
+
+        // Load SMTP accounts
+        async function loadSmtpAccounts() {
+            try {
+                const response = await fetch('/api/smtp/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const container = document.getElementById('smtp-list');
+                    
+                    let html = '<table><thead><tr><th>Nama</th><th>Usage</th><th>Status</th><th>Last Used</th></tr></thead><tbody>';
+                    
+                    result.data.forEach(account => {
+                        const usage = account.usage_percentage || 0;
+                        const status = account.is_active ? 'Aktif' : 'Nonaktif';
+                        const lastUsed = account.last_used ? new Date(account.last_used).toLocaleString() : 'Belum pernah';
+                        
+                        html += `
+                            <tr>
+                                <td>${account.name}</td>
+                                <td>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${usage}%"></div>
+                                    </div>
+                                    ${account.emails_sent_today}/${account.daily_limit} (${usage}%)
+                                </td>
+                                <td>${status}</td>
+                                <td>${lastUsed}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading SMTP accounts:', error);
+            }
+        }
+
+        // Load contact stats
+        async function loadContactStats() {
+            const stats = dashboardData.overview;
+            const container = document.getElementById('contact-stats');
+            
+            container.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Kontak</h3>
+                        <div class="value">${stats.total_contacts}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Aktif</h3>
+                        <div class="value">${stats.active_contacts}</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Blacklisted</h3>
+                        <div class="value">${stats.blacklisted_contacts}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load error logs
+        async function loadErrorLogs() {
+            try {
+                const response = await fetch('/api/dashboard/errors/recent?limit=20');
+                const result = await response.json();
+                
+                if (result.success) {
+                    const container = document.getElementById('error-logs');
+                    
+                    if (result.data.length === 0) {
+                        container.innerHTML = '<p>Tidak ada error terbaru</p>';
+                        return;
+                    }
+                    
+                    let html = '<table><thead><tr><th>Email</th><th>Campaign</th><th>Error</th><th>Waktu</th></tr></thead><tbody>';
+                    
+                    result.data.forEach(log => {
+                        const time = new Date(log.created_at).toLocaleString();
+                        html += `
+                            <tr>
+                                <td>${log.contact_email}</td>
+                                <td>${log.campaign_name}</td>
+                                <td>${log.response_message}</td>
+                                <td>${time}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('Error loading error logs:', error);
+            }
+        }
+
+        // Show tab
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Control functions
+        async function startSender() {
+            try {
+                const response = await fetch('/api/dashboard/sender/start', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(result.message);
+                    setTimeout(loadDashboard, 1000);
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function stopSender() {
+            try {
+                const response = await fetch('/api/dashboard/sender/stop', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(result.message);
+                    setTimeout(loadDashboard, 1000);
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        async function retryFailed() {
+            try {
+                const response = await fetch('/api/dashboard/queue/retry-failed', { method: 'POST' });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(result.message);
+                    setTimeout(loadDashboard, 1000);
+                } else {
+                    showError(result.message);
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            }
+        }
+
+        // Utility functions
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.container').firstChild);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+            document.querySelector('.container').insertBefore(successDiv, document.querySelector('.container').firstChild);
+            
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+        // Event listeners
+        document.getElementById('start-sender').addEventListener('click', startSender);
+        document.getElementById('stop-sender').addEventListener('click', stopSender);
+        document.getElementById('retry-failed').addEventListener('click', retryFailed);
+        document.getElementById('refresh-data').addEventListener('click', loadDashboard);
+
+        // Auto refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
+
+        // Initial load
+        loadDashboard();
+    </script>
+</body>
+</html>

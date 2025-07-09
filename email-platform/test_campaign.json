@@ -1,0 +1,6 @@
+{
+  "name": "Test Email LARK Platform",
+  "subject": "🚀 Test Email dari LARK Platform - Halo {{first_name}}!",
+  "html_content": "<h1>🚀 Halo {{first_name}}!</h1><p>Ini adalah test email dari <strong>LARK Email Platform</strong> yang baru saja selesai dibuat.</p><h2>✨ Fitur Platform:</h2><ul><li>Multiple SMTP LARK accounts</li><li>Bulk email hingga 40,000+ kontak</li><li>Queue system dengan retry mechanism</li><li>Real-time monitoring dashboard</li><li>Template personalisasi</li></ul><p>Email ini dikirim ke: <strong>{{email}}</strong><br>Perusahaan: <strong>{{company}}</strong></p><p>Best regards,<br><strong>LARK Email Platform Team</strong><br>🌐 <a href=\"http://localhost:3000\">Dashboard</a></p>",
+  "text_content": "🚀 Halo {{first_name}}!\n\nIni adalah test email dari LARK Email Platform yang baru saja selesai dibuat.\n\n✨ Fitur Platform:\n- Multiple SMTP LARK accounts\n- Bulk email hingga 40,000+ kontak\n- Queue system dengan retry mechanism\n- Real-time monitoring dashboard\n- Template personalisasi\n\nEmail ini dikirim ke: {{email}}\nPerusahaan: {{company}}\n\nBest regards,\nLARK Email Platform Team\nDashboard: http://localhost:3000"
+}
