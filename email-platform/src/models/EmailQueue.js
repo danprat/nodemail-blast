@@ -52,7 +52,7 @@ class EmailQueue {
     // Ambil email berikutnya untuk dikirim
     async getNext(limit = 1) {
         const sql = `
-            SELECT 
+            SELECT
                 eq.*,
                 c.email as contact_email,
                 c.first_name,
@@ -71,14 +71,16 @@ class EmailQueue {
             JOIN contacts c ON eq.contact_id = c.id
             JOIN campaigns camp ON eq.campaign_id = camp.id
             JOIN smtp_accounts sa ON eq.smtp_account_id = sa.id
-            WHERE eq.status = 'pending' 
-            AND eq.scheduled_at <= CURRENT_TIMESTAMP
+            WHERE eq.status = 'pending'
+            AND datetime(eq.scheduled_at) <= datetime('now')
             AND sa.is_active = 1
             AND sa.emails_sent_today < sa.daily_limit
             ORDER BY eq.priority DESC, eq.created_at ASC
             LIMIT ?
         `;
-        
+
+        // Debug logs removed for production
+
         if (limit === 1) {
             return await this.db.get(sql, [limit]);
         } else {

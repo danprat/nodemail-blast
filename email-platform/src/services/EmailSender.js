@@ -129,7 +129,7 @@ class EmailSender {
             while (this.isRunning) {
                 // Ambil email berikutnya dari antrian
                 const queueItem = await this.queueModel.getNext(1);
-                
+
                 if (!queueItem) {
                     // Tidak ada email dalam antrian, tunggu sebentar
                     await this.sleep(5000); // 5 detik
